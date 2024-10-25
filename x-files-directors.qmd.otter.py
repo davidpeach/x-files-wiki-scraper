@@ -1,20 +1,20 @@
----
-title: X-Files Directors
-author: David Peach
-format:
-  html:
-    theme: "sketchy"
----
 
-Purely as an exercise for my own learning, I thought I would analyse the top 𝒙 directors of episodes of The X-Files,
-and see which ones tended to have the most popular episodes by viewership.
 
-## Parsing the episode data from Wikipedia
 
-I wrote the page scraper in python, using the Beautiful Soup library. This just parses the 
-episode data out of the tables from the x files episodes wikipedia page.
 
-```{python}
+
+
+
+
+
+
+
+
+
+
+
+
+
 from bs4 import BeautifulSoup
 import requests
 import csv
@@ -141,66 +141,3 @@ with open(filename, "w", newline="") as f:
             ]
         )
 
-```
-
-## Getting the top directors in order
-
-I am using `R Lang` for analysing the data and generating the visuals.
-
-```{r}
-#| echo: false
-#| warning: false
-library(tidyverse)
-library(forcats)
-library(knitr)
-```
-
-First things first, I find the people who have directed the most episodes from The X-Files TV series.
-I have chosen to use the top eight most active people, but this number could easily but ammended.
-
-```{r}
-#| tbl-cap: "Most active directors"
-data <- read.csv("x-files-episodes.csv")
-most_active_directors <- head(
-  sort(table(data$director), decreasing = TRUE),
-  n = 8L
-)
-
-as.data.frame(most_active_directors) %>%
-  kable(
-    col.names = c("Name of Director", "Number of Episodes directed"),
-    format = "html"
-  )
-```
-
-## Displaying the data
-
-Next I create a boxplot, ordered by the median (middle value), to show range of viewer numbers, for each of the directors.
-
-```{r}
-#| warning: false
-
-directors_wanted <- names(most_active_directors)
-
-data %>%
-  select(title, viewers, director) %>%
-  filter(director %in% directors_wanted) %>%
-  mutate(viewers = as.double(
-    str_replace(viewers, "\\[[0-9]+\\]", ""))
-  ) %>%
-  mutate(director = as.factor(director)) %>%
-  mutate(g_id = group_indices(., director)) %>%
-  ggplot(aes(
-    x = fct_reorder(director, viewers, .fun = median),
-    y = viewers,
-  )) +
-  geom_boxplot() +
-  coord_flip() +
-  # geom_smooth(method = lm, se = FALSE) +
-  theme_minimal() +
-  labs(
-    title = "Number of viewers that top directors have attracted",
-    x = "Director Name",
-    y = "Number of viewers (in millions)",
-  )
-```
